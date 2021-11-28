@@ -17,7 +17,7 @@
 import RestaurantDetail from "./../components/RestaurantDetail";
 import RestaurantComments from "./../components/RestaurantComments";
 import CreateComment from "./../components/CreateComment";
-import restaurantAPI from "./../apis/restaurants";
+import restaurantsAPI from "./../apis/restaurants";
 import { Toast } from "./../utils/helpers";
 import { mapState } from 'vuex'
 
@@ -61,7 +61,7 @@ export default {
     async fetchRestaurant(restaurantId) {
       try {
 
-        const { data } = await restaurantAPI.getRestaurant({restaurantId})
+        const { data } = await restaurantsAPI.getRestaurant({restaurantId})
 
         if(data.status === 'error') {
           throw new Error(data.message)
