@@ -13,7 +13,9 @@
           Delete
         </button>
         <h3>
-          <router-link :to="{ name: 'users-profile', params: { id: user.id } }">
+          <router-link
+            :to="{ name: 'users-profile', params: { id: comment.User.id } }"
+          >
             {{ comment.User.name }}
           </router-link>
         </h3>
@@ -29,16 +31,9 @@
 
 <script>
 import { fromNowFilter } from "./../utils/mixins";
-
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: "root",
-    email: "root@example.com",
-    isAdmin: true,
-  },
-  isAuthenticated: true,
-};
+import { mapState } from "vuex";
+import commentsAPI from "./../apis/comments";
+import { Toast } from "./../utils/helpers";
 
 export default {
   name: "RestaurantComments",
@@ -49,16 +44,32 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      currentUser: dummyUser.currentUser,
-    };
+  
+  computed: {
+    ...mapState(["currentUser"]),
   },
-  methods: {
-    handleDeleteButtonClick(commentId) {
-      console.log("handleDeleteButtonClick", commentId);
 
-      this.$emit("after-delete-comment", commentId);
+  methods: {
+    async handleDeleteButtonClick(commentId) {
+      try {
+        const { data } = await commentsAPI.delete({ commentId });
+
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+
+        this.$emit("after-delete-comment", commentId);
+
+        Toast.fire({
+          icon: "success",
+          title: "成功移除評論",
+        });
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法刪除評論，請稍後再試",
+        });
+      }
     },
   },
 };

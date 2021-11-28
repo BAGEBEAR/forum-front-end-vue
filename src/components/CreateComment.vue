@@ -14,7 +14,9 @@
 </template>
 
 <script>
-import { v4 as uuidv4 } from "uuid";
+import commentsAPI from "./../apis/comments";
+import { Toast } from "./../utils/helpers";
+import { mapState } from 'vuex'
 
 export default {
   name: "CreateComment",
@@ -27,17 +29,48 @@ export default {
   data() {
     return {
       text: "",
+      isProcessing: false
     };
   },
+  computed: {
+    ...mapState(["currentUser"]),
+  },
   methods: {
-    handleSubmit() {
-      console.log("form submit", this.text);
-      this.$emit("acter-create-comment", {
-        commentId: uuidv4(), //目前尚未串接API 無法取得commentId
-        restaurantId: this.restaurantId,
-        text: this.text,
-      });
-      this.text = ''
+    async handleSubmit() {
+      try {
+        if(!this.text) {
+          Toast.fire({
+            icon: 'warning',
+            title: '您未填寫任何評論'
+          })
+          return
+        }
+
+        this.isProcessing = true;
+        const { data } = await commentsAPI.post({ 
+          restaurantId: this.restaurantId,
+          text: this.text
+          })
+
+        if (data.status !== 'success') {
+          throw new Error(data.message)
+        }
+
+        this.$emit("after-create-comment", {
+          commentId: data.id,
+          restaurantId: this.restaurantId,
+          text: this.text,
+        });
+
+        this.text = ''
+        this.isProcessing = false
+        
+      } catch(error) {
+        Toast.fire({
+          icon: 'error',
+          title: '無法新增評論，請稍後再試'
+        })
+      }
     },
   },
 };

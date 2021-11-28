@@ -94,7 +94,7 @@ export default {
         const { data } = await usersAPI.addFavorite({ restaurantId });
 
         if (data.status !== "success") {
-          throw new Error(data.mesage);
+          throw new Error(data.message);
         }
 
         this.restaurants = this.restaurants.map((restaurant) => {
