@@ -1,11 +1,11 @@
 <template>
   <div class="container py-5">
-    <form  @submit.stop.prevent="handleSubmit">
+    <form @submit.stop.prevent="handleSubmit">
       <div class="form-group">
         <label for="name">Name</label>
         <input
           id="name"
-          v-model="profile.name"
+          v-model="name"
           type="text"
           name="name"
           class="form-control"
@@ -16,12 +16,12 @@
 
       <div class="form-group">
         <label for="image">Image</label>
-        <img 
-          :src="profile.image" 
+        <img
+          :src="image"
           class="d-block img-thumbnail mb-3"
-          width="200"  
+          width="200"
           height="200"
-        >
+        />
         <input
           id="image"
           type="file"
@@ -32,63 +32,114 @@
         />
       </div>
 
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button type="submit" class="btn btn-primary" :disabled="isProcessing">
+        Submit
+      </button>
     </form>
   </div>
 </template>
 
 <script>
-const dummyData = {
-  profile: {
-    id: 1,
-    name: "root",
-    email: "root@example.com",
-    password: "$2a$10$gcq3aK0/zBE4bIu4lSDFwe61oqYZMiGbTzvbR7DkW31XPsX2rfe.S",
-    isAdmin: true,
-    image: "https://loremflickr.com/320/240/restaurant,food/?random=91.29816290184887",
-  },
-};
+import usersAPI from "./../apis/users";
+import { Toast } from "./../utils/helpers";
+import { mapState } from "vuex";
 
 export default {
   data() {
     return {
-      initialProfile: {
-        name: "",
-        image: "",
-      },
-      profile: {
-        ...this.initialProfile
-      }
+      id: 0,
+      image: "",
+      name: "",
+      email: "",
+      isProcessing: false,
     };
   },
+
+  computed: {
+    ...mapState(["currentUser"]),
+  },
+
+  beforeRouteUpdate(to, from, next) {
+    if(this.currentUser.id === -1) return
+    const { id } = to.params
+    this.setUser(id)
+    next()
+  },
+
+  watch: {
+    currentUser(user) {
+      if (user.id === -1) return;
+      const { id } = this.$route.params;
+      this.setUser(id);
+    },
+  },
+
   methods: {
-    fetchUser(userId) {
-      console.log("fetch user id:", userId)
-      const { profile } = dummyData;
-      this.profile = {
-        ...this.initialProfile,
-        name: profile.name,
-        image: profile.image,
+    async setUser(userId) {
+      try {
+        const { id, image, name, email } = this.currentUser;
+
+        if (id.toString() !== userId.toString()) {
+          console.log('id=', id, ' userId=', userId)
+          this.$router.push({ name: "not-found" });
+        }
+
+        this.id = id;
+        this.name = name;
+        this.image = image;
+        this.email = email;
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法取得使用者資料，請稍後再試",
+        });
       }
     },
     handleFileChange(e) {
-      const {files} = e.target
-      if(files.length === 0) {
-        this.profile.image=''
+      const { files } = e.target;
+      if (files.length === 0) {
+        this.image = "";
       } else {
-        const imageURL = window.URL.createObjectURL(files[0])
-        console.log(imageURL)
-        this.profile.image = imageURL}
+        const imageURL = window.URL.createObjectURL(files[0]);
+        console.log(imageURL);
+        this.image = imageURL;
+      }
     },
-    handleSubmit(e) {
-      const form = e.target
-      const formData = new FormData(form)
-      this.$emit('after-submit', formData)
-    }
+
+    async handleSubmit(e) {
+      try {
+        if (!this.name) {
+          Toast.fire({
+            icon: "warning",
+            title: "請填寫使用者名稱",
+          });
+          return;
+        }
+
+        this.isProcessing = true;
+        const form = e.target;
+        const formData = new FormData(form);
+        const { data } = await usersAPI.update({ userId: this.id, formData });
+
+        if (data.status === "error") {
+          throw new Error(data.message);
+        }
+
+        this.isProcessing = false;
+        this.$router.push({ name: "users-profile", params: { id: this.id } });
+
+      } catch (error) {
+        this.isProcessing = false;
+        Toast.fire({
+          icon: "error",
+          title: "無法編輯使用者資料，請稍後再試",
+        });
+      }
+    },
   },
   created() {
     const { id } = this.$route.params;
-    this.fetchUser(id);
+    this.setUser(id);
   },
 };
 </script>

@@ -24,7 +24,7 @@
         <p></p>
         <template v-if="isCurrentUser">
           <router-link
-            :to="{ name: 'user-edit', params: { id: user.id}}"
+            :to="{ name: 'users-profile-edit', params: { id: user.id}}"
             class="btn btn-primary"
           >
             Edit

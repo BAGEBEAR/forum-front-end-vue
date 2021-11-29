@@ -101,7 +101,7 @@ const routes = [
   },
   {
     path: '*',
-    name: 'NotFound',
+    name: 'not-found',
     component: NotFound
   }
 ]
