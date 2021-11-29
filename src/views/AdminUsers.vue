@@ -24,7 +24,7 @@
               v-show="!user.isAdmin"
               type="button"
               class="btn btn-link"
-              @click.stop.prevent="toggleUser(user.id)"
+              @click.stop.prevent="toggleUser({userId:user.id, isAdmin: user.isAdmin})"
             >
               set as Admin
             </button>
@@ -33,7 +33,7 @@
               v-if="currentUser.id !== user.id"
               type="button"
               class="btn btn-link"
-              @click.stop.prevent="toggleUser(user.id)"
+              @click.stop.prevent="toggleUser({userId:user.id, isAdmin: user.isAdmin})"
             >
               set as user
             </button>
@@ -48,8 +48,7 @@
 import AdminNav from "./../components/AdminNav.vue";
 import adminAPI from "./../apis/admin";
 import { Toast } from "./../utils/helpers";
-import { mapState } from 'vuex'
-
+import { mapState } from "vuex";
 
 export default {
   name: "AdminUsers",
@@ -61,9 +60,11 @@ export default {
       users: [],
     };
   },
+
   computed: {
     ...mapState(["currentUser"]),
   },
+
   methods: {
     async fetchUsers() {
       try {
@@ -81,20 +82,38 @@ export default {
         });
       }
     },
-    
-    toggleUser(userId) {
-      this.users = this.users.map((user) => {
-        if (user.id === userId) {
-          return {
-            ...user,
-            isAdmin: !user.isAdmin,
-          };
+
+    async toggleUser({userId, isAdmin}) {
+      try {
+        const { data } = await adminAPI.users.update({
+          userId,
+          isAdmin: (!isAdmin).toString(),
+        });
+
+        console.log(data)
+        if (data.status !== "success") {
+          throw new Error(data.message);
         }
 
-        return user;
-      });
+        this.users = this.users.map((user) => {
+          if (user.id === userId) {
+            return {
+              ...user,
+              isAdmin: !isAdmin,
+            };
+          }
+          return user;
+        });
+
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法更改使用者權限，請稍後再試",
+        });
+      }
     },
   },
+
   created() {
     this.fetchUsers();
   },
