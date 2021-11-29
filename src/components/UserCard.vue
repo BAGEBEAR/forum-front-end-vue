@@ -50,7 +50,7 @@ export default {
       try{
         const { data } = await usersAPI.addFollowing({ userId })
 
-        if (data.status !== "success") {
+        if (data.status === "error") {
           throw new Error(data.message);
         }
 
@@ -73,7 +73,7 @@ export default {
       try{
         const { data } = await usersAPI.deleteFollowing({ userId })
 
-        if (data.status !== "success") {
+        if (data.status === "error") {
           throw new Error(data.message);
         }
 

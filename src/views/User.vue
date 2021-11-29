@@ -3,9 +3,8 @@
     <div class="container">
       <div class="card mb-3">
         <UserProfileCard 
-          :profile="profile" 
+          :user="profile" 
           :initialIsFollowed="isFollowed" 
-          :isAuthenticated="isAuthenticated"
           :isCurrentUser="isCurrentUser"
         />
       </div>

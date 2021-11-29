@@ -1,12 +1,12 @@
 <template>
   <div class="row no-gutters">
     <div class="col-md-4">
-      <img :src="profile.image" width="300px" height="300px" />
+      <img :src="user.image" width="300px" height="300px" />
     </div>
     <div class="col-md-8">
       <div class="card-body">
-        <h5 class="card-title">{{ profile.name }}</h5>
-        <p class="card-text">{{ profile.email }}</p>
+        <h5 class="card-title">{{ user.name }}</h5>
+        <p class="card-text">{{ user.email }}</p>
         <ul class="list-unstyled list-inline">
           <li>
             <strong>{{ UserCommentedCount }}</strong> 已評論餐廳
@@ -24,7 +24,7 @@
         <p></p>
         <template v-if="isCurrentUser">
           <router-link
-            :to="{ name: 'user-edit', params: { id: profile.id}}"
+            :to="{ name: 'user-edit', params: { id: user.id}}"
             class="btn btn-primary"
           >
             Edit
@@ -33,7 +33,7 @@
         <template v-else>
           <button
             v-if="isFollowed"
-            @click.stop.prevent="deleteFollowing"
+            @click.stop.prevent="deleteFollowing(user.id)"
             type="submit"
             class="btn btn-danger btn-border"
           >
@@ -41,7 +41,7 @@
           </button>
           <button
             v-else
-            @click.stop.prevent="addFollowing"
+            @click.stop.prevent="addFollowing(user.id)"
             type="submit"
             class="btn btn-primary btn-border"
           >
@@ -61,15 +61,11 @@ import { Toast } from "./../utils/helpers";
 
 export default {
   props: {
-    profile: {
+    user: {
       type: Object,
       required: true,
     },
     initialIsFollowed: {
-      type: Boolean,
-      required: true,
-    },
-    isAuthenticated: {
       type: Boolean,
       required: true,
     },
@@ -89,26 +85,27 @@ export default {
     };
   },
   watch: {
-    isAuthenticated(newValue) {
-      this.isAuthenticated = newValue;
+    initialIsFollowed(newValue) {
+      this.isFollowed = newValue;
     },
   },
   methods: {
     fetchUser() {
-      this.UserCommentedCount = this.profile.Comments.length;
-      this.UserFavoritedCount = this.profile.FavoritedRestaurants.length;
-      this.UserFollowersCount = this.profile.Followers.length;
-      this.UserFollowingsCount = this.profile.Followings.length;
+      this.UserCommentedCount = this.user.Comments.length;
+      this.UserFavoritedCount = this.user.FavoritedRestaurants.length;
+      this.UserFollowersCount = this.user.Followers.length;
+      this.UserFollowingsCount = this.user.Followings.length;
     },
-    async addFollowing({ userId }) {
+    async addFollowing(userId) {
       try {
         const { data } = await usersAPI.addFollowing({ userId });
-
-        if (data.status !== "success") {
+        
+        if (data.status === "error") {
           throw new Error(data.message);
         }
 
         this.isFollowed = true;
+
       } catch (error) {
         Toast.fire({
           icon: "error",
@@ -117,15 +114,16 @@ export default {
       }
     },
 
-    async deleteFollowing({ userId }) {
+    async deleteFollowing(userId) {
       try {
         const { data } = await usersAPI.deleteFollowing({ userId });
 
-        if (data.status !== "success") {
+        if (data.status === "error") {
           throw new Error(data.message);
         }
 
         this.isFollowed = false;
+
       } catch (error) {
         Toast.fire({
           icon: "error",
