@@ -13,7 +13,8 @@ export default new Vuex.Store({
       image: '',
       isAdmin: false
     },
-    isAuthenticated: false
+    isAuthenticated: false,
+    token: ''
   },
   mutations: {
     setCurrentUser(state, currentUser) {
@@ -22,11 +23,13 @@ export default new Vuex.Store({
         ...currentUser
       }
       state.isAuthenticated = true
+      state.token = localStorage.getItem('token')
     },
     revokeAuthentication(state) {
       state.currentUser = {}
       state.isAuthenticated = false
       localStorage.removeItem('token')
+      state.token = ''
     }
   },
   actions: {
@@ -43,9 +46,11 @@ export default new Vuex.Store({
         commit('setCurrentUser', {
           id, name, email, image, isAdmin
         })
-
+        return true
       } catch (error) {
         console.error(error.message)
+        commit('revokeAuthentication')
+        return false
       }
     }
   },
