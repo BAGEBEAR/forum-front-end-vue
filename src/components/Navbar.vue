@@ -37,6 +37,7 @@
           <button
             type="button"
             class="btn btn-sm btn-outline-success my-2 my-sm-0"
+            @click="logout"
           >
             登出
           </button>
@@ -54,6 +55,12 @@ export default {
   computed: {
     ... mapState(['currentUser', 'isAuthenticated'])
     
+  },
+  methods: {
+    logout() {
+      this.$store.commit('revokeAuthentication')
+      this.$router.push('/signin')
+    }
   }
 }
 </script>
