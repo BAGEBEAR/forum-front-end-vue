@@ -14,12 +14,16 @@
     </div>
     <!-- Restaurant Pagination -->
     <RestaurantPagination
+      v-if="restaurants.length > 1"
       :currentPage="currentPage"
       :totalPage="totalPage"
       :previous-page="previousPage"
       :next-page="nextPage"
       :category-id="categoryId"
     />
+    <div v-if="restaurants.length < 1">
+      此類別目前無資料
+    </div>
   </div>
 </template>
 
